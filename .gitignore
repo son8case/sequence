@@ -1,0 +1,4 @@
+# ignore helper directories, temporary folders, temporary files
+.*/
+temp/
+temp.*
