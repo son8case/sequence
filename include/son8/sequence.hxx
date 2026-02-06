@@ -26,6 +26,21 @@ namespace son8::sequence {
         // IMPORTANT must be last
         Size_
     };
+    // edit
+    template< typename Type >
+    struct Edit {
+        using Out_ = typename Type::OutThis_;
+        using Ptr_ = Ptr< typename Type::Data >;
+        static_assert( Type::category( ) == Category::Adjacent
+            , "son8::sequence: Edit requires sequence with adjacent category" );
+        static void beg( Out_ edit,  Ptr_ value ) noexcept { edit.beg_ = value; }
+        static void end( Out_ edit,  Ptr_ value ) noexcept { edit.end_ = value; }
+    };
+    // -- helpers
+    template< typename Type >
+    void edit_beg( Out< Type > edit, Ptr< typename Type::Data > value ) noexcept { Edit< Type >::beg( edit, value ); }
+    template< typename Type >
+    void edit_end( Out< Type > edit, Ptr< typename Type::Data > value ) noexcept { Edit< Type >::end( edit, value ); }
     // Adjacent category requires contiguous containters
     template< typename Type >
     class Adjacent final {
@@ -35,6 +50,8 @@ namespace son8::sequence {
         using OutThis_ = Out< This_ >;
         // data
         Ptr_ beg_, end_;
+        // setters
+        friend struct Edit< This_ >;
     public:
         // aliases
         using Data = Type;
@@ -49,12 +66,6 @@ namespace son8::sequence {
         auto end( ) const noexcept { return end_; }
         // getters
         auto beg( ) const noexcept { return beg_; }
-        // setters
-        friend struct Edit;
-        struct Edit final {
-            static void beg( OutThis_ edit, Ptr_ value ) noexcept { edit.beg_ = value; }
-            static void end( OutThis_ edit, Ptr_ value ) noexcept { edit.end_ = value; }
-        };
     };
 
     // make_from_std( std::vector< Type > ) -> Adjacent
@@ -67,8 +78,8 @@ namespace son8::sequence {
         auto notFound = Type{ seq.end( ), seq.end( ) };
         while ( seq.end( ) - seq.beg( ) ) {
             auto mid = seq.beg( ) + ( ( seq.end( ) - seq.beg( ) ) >> 1u );
-            if/*_*/ ( *mid < data ) Type::Edit::beg( seq, mid + 1 );
-            else if ( data < *mid ) Type::Edit::end( seq, mid );
+            if/*_*/ ( *mid < data ) edit_beg( seq, mid + 1 );
+            else if ( data < *mid ) edit_end( seq, mid );
             else return Type{ mid, mid + 1 };
         }
         return notFound;
