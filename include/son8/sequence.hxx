@@ -26,6 +26,18 @@ namespace son8::sequence {
         // IMPORTANT must be last
         Size_
     };
+    // read
+    // -- helpers
+    template< typename Type >
+    auto read_diff( Type seq ) noexcept {
+        static_assert( Type::category( ) == Category::Adjacent );
+        return seq.end( ) - seq.beg( );
+    }
+    template< typename Type >
+    auto read_middle( Type seq ) noexcept {
+        static_assert( Type::category( ) == Category::Adjacent );
+        return seq.beg( ) + ( read_diff( seq ) >> 1u );
+    }
     // edit
     template< typename Type >
     struct Edit {
@@ -76,8 +88,8 @@ namespace son8::sequence {
         static_assert( Type::category( ) == Category::Adjacent
             , "son8::sequence sorted_match requires sequence to be adjacent (contigues)" );
         auto notFound = Type{ seq.end( ), seq.end( ) };
-        while ( seq.end( ) - seq.beg( ) ) {
-            auto mid = seq.beg( ) + ( ( seq.end( ) - seq.beg( ) ) >> 1u );
+        while ( read_diff( seq ) ) {
+            auto mid = read_middle( seq );
             if/*_*/ ( *mid < data ) edit_beg( seq, mid + 1 );
             else if ( data < *mid ) edit_end( seq, mid );
             else return Type{ mid, mid + 1 };
